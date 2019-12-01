@@ -2,47 +2,50 @@ import React from 'react';
 import axios from 'axios';
 
 class User extends React.Component {
-  constructor(props){
-    super(props);
+  constructor() {
+    super();
     this.state = {
       users: []
     }
-    this.baseUrl = 'http://localhost:5000';
-    axios.get(this.baseUrl + '/users')
+    this.baseUrl = 'http://localhost:5000'
+  }
+
+  componentDidMount() {
+    axios.get(this.baseUrl + '/user')
       .then((response) => {
-        console.log(response);
         this.setState({
           users: response.data.result
         })
       })
-      .catch((err) => console.log(err))
   }
 
   componentWillUpdate(nextProps){
-    console.log(this.props, nextProps);
-    if(this.props.userName != nextProps.userName){
+    console.log('in componentWillUpdate', this.props.user, nextProps.user);
+    if(this.props.user.userName != nextProps.user.userName){
       this.setState({
-        users: [...this.state.users, { userName: nextProps.userName, password: nextProps.password, mobileNo: nextProps.mobileNo }]
+        users: [ ...this.state.users, nextProps.user ]
+      }, () => {
+        console.log(this.state);
       })
     }
   }
 
-  renderUserList = (users) => users.map((user, index) => <tr key={index}>
+  renderUserList = () => this.state.users.map((user, index) => <tr key={index}>
                                                           <td>{user.userName}</td>
                                                           <td>{user.mobileNo}</td>
-                                                        </tr>)
+                                                        </tr> )
 
-  render(){
+  render() {
     return(
       <table className="table table-dark table-striped">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Mobile No</th>
+            <th>Username</th>
+            <th>Mobile no</th>
           </tr>
         </thead>
         <tbody>
-          {this.renderUserList(this.state.users)}
+          {this.renderUserList()}
         </tbody>
       </table>
     )

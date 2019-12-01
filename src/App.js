@@ -1,98 +1,87 @@
 import React from 'react';
-import axios from 'axios';
-import User from './User'
+import axios from 'axios'
+import User from './User';
 
-class App extends React.Component {
+class App extends React.Component{
   constructor(){
     super();
     this.state = {
       userName: '',
-      password: '',
       mobileNo: '',
-      mobileNoError: false,
+      password: '',
+      formError: false,
+      formSuccess: false,
       userNameError: false,
+      mobileNoError: false,
       userNameRequired: false,
       passwordRequired: false,
       mobileNoRequired: false,
-      formError: false,
-      formSuccess: false,
       submittedUserName: '',
       submittedPassword: '',
       submittedMobileNo: ''
     }
-    this.baseURL = 'http://localhost:5000'
+    this.baseUrl =  'http://localhost:5000'
   }
 
-  handleUsername = (event) => {
+  handleUserName = (evevnt) => {
     this.setState({
-      userName: event.target.value,
+      userName: evevnt.target.value,
+      formError: false,
+      formSuccess: false,
       userNameRequired: false,
-      userNameError: false
-    })
-  }
-
-  handlePassword = (event) => {
-    this.setState({
-      password: event.target.value,
-      passwordRequired: false,
+      userNameError: false,
     })
   }
 
   handleMobileNo = (event) => {
     this.setState({
       mobileNo: event.target.value,
-      mobileNoRequired: false,
-      mobileNoError: false
+      formError: false,
+      formSuccess: false,
+      userNameError: false,
+      mobileNoError: false,
+      mobileNoRequired: false
     })
-    for(let i=0;i<event.target.value.length;i++){
-      if(event.target.value[i].charCodeAt(i) < 48 || event.target.value[i].charCodeAt(i) > 57){
+    event.target.value.split().forEach((element) => {
+      if(element.charCodeAt(0) <48 || element.charCodeAt(0)>57){
         this.setState({
           mobileNoError: true
         })
       }
-    }
+    })
   }
 
-  createUser = () => {
-    let submitUser = {
-      userName: this.state.userName,
-      password: this.state.password,
-      mobileNo: this.state.mobileNo
-    }
-    axios.post(this.baseURL + '/addUser', submitUser)
-      .then((response) => {
-        this.setState({
-          formSuccess: true
-        })
-        this.setState({
-          submittedUserName: this.state.userName,
-          submittedPassword: this.state.password,
-          submittedMobileNo: this.state.mobileNo
-        })
-      })
-      .catch((err) => {
-        this.setState({
-          formError: true
-        })
-      })
+  handlePassword = (event) => {
+    this.setState({
+      password: event.target.value,
+      formError: false,
+      formSuccess: false,
+      passwordRequired: false,
+      userNameError: false,
+    })
   }
 
-  handleSubmit = (event) => {
+  handleAlertBox = () => {
+    this.setState({
+      formSuccess: false,
+      formError: false
+    })
+  }
+
+  handelSubmit = (event) => {
     event.preventDefault();
-    if(this.state.mobileNoError){
-      return;
-    }
-    //write condition for valid also
     if(this.state.userName.length == 0){
       this.setState({
         userNameRequired: true
       })
     }
+    
     if(this.state.password.length == 0){
       this.setState({
         passwordRequired: true
       })
     }
+
     if(this.state.mobileNo.length == 0){
       this.setState({
         mobileNoRequired: true
@@ -101,23 +90,24 @@ class App extends React.Component {
     }
 
     this.setState({
-      userNameRequired: false,
-      passwordRequired: false,
-      mobileNoRequired: false,
-      mobileNoError: false,
       userNameError: false,
+      userNameRequired: false,
+      mobileNoError: false,
+      mobileNoRequired: false,
+      passwordRequired: false,
       formError: false,
       formSuccess: false
     })
-    let verfyUser = {
-      userName: this.state.userName,
-      password: this.state.password,
-      mobileNo: this.state.mobileNo
-    }
-    axios.post(this.baseURL + '/user', verfyUser)
+
+    axios.post(this.baseUrl+ '/addUser', {  userName: this.state.userName, password: this.state.password, mobileNo: this.state.mobileNo })
       .then((response) => {
         if(response.data.status){
-          this.createUser()
+          this.setState({
+            formSuccess: true,
+            submittedPassword: this.state.password,
+            submittedUserName: this.state.userName,
+            submittedMobileNo: this.state.mobileNo
+          })
         }else{
           this.setState({
             userNameError: true
@@ -131,77 +121,67 @@ class App extends React.Component {
       })
   }
 
-  removeAlert = () => {
-    this.setState({
-      formError: false,
-      formSuccess: false
-    })
-  }
-  
-  invalidFeedback(text){
+  invalidfedback = (text) => {
     return <div className="invalid-feedback">{text}</div>
   }
 
   render(){
-    let formError = <div className="alert alert-danger alert-dismissible">
+    let userNameRequired = this.invalidfedback('Username is required');
+    let passwordRequired = this.invalidfedback('Password is required');
+    let mobileNoRequired = this.invalidfedback('Mobile is required');
+    let mobileNoError = this.invalidfedback('Mobiole no should not contain characters');
+    let userNameError = this.invalidfedback('Username already exist');
+    let formError = <div className="alert alert-dismissible alert-danger">
       Error occured while submitting the form
-      <button className="close" onClick={this.removeAlert}>
+      <button className="close" onClick={this.handleAlertBox}> 
         <span>&times;</span>
       </button>
     </div>
-
-    let formSuccess = <div className="alert alert-success alert-dismissible">
-      Form Submitted Successfully
-      <button className="close" onClick={this.removeAlert}>
+    let formSucccess =  <div className="alert alert-success alert-dismissible">
+      From submitted successfully
+      <button className="close" onClick={this.handleAlertBox}>
         <span>&times;</span>
       </button>
     </div>
-
-    let userNameRequired = this.invalidFeedback('Username Required');
-    let passwordRequired = this.invalidFeedback('Password Required')
-    let mobileNoRequired = this.invalidFeedback('Mobile No Required');
-    let mobileNoError = this.invalidFeedback('MobileNo should be a string');
-    let userNameError = this.invalidFeedback('Username already exist');
-
     return(
       <div className="container">
         <div className="row">
           <div className="col-12">
-          { this.state.formError ? formError : '' }
-          { this.state.formSuccess ? formSuccess : '' }
-          <form onSubmit={this.handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="userName">Username</label>
-              <input 
-                type="text"
-                value={this.state.userName} 
-                onChange={this.handleUsername} 
-                className={`form-control ${this.state.userNameError || this.state.userNameRequired ? 'is-invalid' : ''}`} />
-              { this.state.userNameRequired ? userNameRequired : '' }
-              { this.state.userNameError ? userNameError : '' }
-            </div>
-            <div className="form-group">
-              <label htmlFor="mobileNo">Mobile Number</label>
-              <input 
-                type="text" 
-                value={this.state.mobileNo} 
-                onChange={this.handleMobileNo} 
-                className={`form-control ${this.state.mobileNoError || this.state.mobileNoRequired ? 'is-invalid' : ''}`} />
+            { this.state.formError ? formError: '' }
+            { this.state.formSuccess ? formSucccess: '' }
+            <form  onSubmit={this.handelSubmit}>
+              <div className="from-group">
+                <label htmlFor="userName">Useranme</label>
+                <input 
+                  type="text" 
+                  value={this.state.userName} 
+                  onChange={this.handleUserName} 
+                  className={`form-control ${this.state.userNameError || this.state.userNameRequired ? 'is-invalid' : ''}`}/>
+                { this.state.userNameError ? userNameError : '' }
+                { this.state.userNameRequired ? userNameRequired : '' }
+              </div>
+              <div className="form-group">
+                <label htmlFor="mobileNo">Mobile no</label>
+                <input 
+                  type="text"
+                  value={this.state.mobileNo}
+                  onChange={this.handleMobileNo} 
+                  className={`form-control ${this.state.mobileNoError || this.state.mobileNoRequired ? 'is-invalid' : ''}`}/>
                 { this.state.mobileNoError ? mobileNoError : '' }
                 { this.state.mobileNoRequired ? mobileNoRequired : '' }
-            </div>
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input 
-                type="text" 
-                value={this.state.password}
-                onChange={this.handlePassword} 
-                className={`form-control ${this.state.passwordRequired ? 'is-invalid' : ''}`}/>
-              { this.state.passwordRequired ? passwordRequired : '' }
-            </div>
-            <button className="btn btn-success" type="submit">Submit</button>
-          </form>
-          <User user={{ userName: this.state.submittedUserName, password: this.state.submittedPassword, mobileNo: this.state.submittedMobileNo }} />
+              </div>
+              <div className="form-group">
+                <label htmlFor="password">Password</label>
+                <input 
+                  type="text" 
+                  value={this.state.password} 
+                  onChange={this.handlePassword} 
+                  className={`form-control ${this.state.passwordRequired || this.state.passwordRequired ? 'is-invalid': ''}`}/>
+                { this.state.passwordRequired ? passwordRequired : '' }
+              </div>
+              <button className="btn btn-success">Submit</button>
+            </form>
+            <User userName={this.state.submittedUserName} passwod={this.state.submittedPassword} mobileNo={this.state.submittedMobileNo} />
           </div>
         </div>
       </div>
